@@ -1,0 +1,69 @@
+﻿@using Syncfusion.Blazor;
+@using Syncfusion.Blazor.Data;
+@using System.Text.Json
+@using System.Text.Json.Serialization;
+@using static EFGrid.Pages.Index;
+@using Microsoft.Data.SqlClient;
+@using System.Data;
+@using System.IO;
+@using System.Web;
+@using Microsoft.AspNetCore.Hosting;
+
+@inject IHostingEnvironment _env
+
+@inherits DataAdaptor<Order>
+
+<CascadingValue Value="@this">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    [JsonIgnore]
+    public RenderFragment ChildContent { get; set; }
+    public static DataSet CreateCommand(string queryString, string connectionString)
+    {
+        using (SqlConnection connection = new SqlConnection(
+                   connectionString))
+        {
+            SqlDataAdapter adapter = new SqlDataAdapter(queryString, connection);
+            DataSet dt = new DataSet();
+            try
+            {
+                connection.Open();
+                adapter.Fill(dt);// using sqlDataAdapter we process the query string and fill the data into dataset
+            }
+            catch (SqlException se)
+            {
+                Console.WriteLine(se.ToString());
+            }
+            finally
+            {
+                connection.Close();
+            }
+            return dt;
+        }
+    }
+
+    // Performs data Read operation
+    public override object Read(DataManagerRequest DataManagerReq, string Key = null)
+    {
+        string AppData = _env.ContentRootPath;
+        string DatabasePath = Path.Combine(AppData, "App_Data\\NORTHWND.MDF");
+        string ConnectionStr = $"Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename='{DatabasePath}';Integrated Security=True;Connect Timeout=30";
+        string QueryStr = "SELECT OrderID, CustomerID FROM dbo.Orders ORDER BY OrderID OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;";
+        DataSet Data = CreateCommand(QueryStr, ConnectionStr);
+        Orders = Data.Tables[0].AsEnumerable().Select(r => new Order
+        {
+            OrderID = r.Field<int>("OrderID"),
+            CustomerID = r.Field<string>("CustomerID")
+        }).ToList();  // Here, we convert dataset into list
+        IEnumerable<Order> DataSource = Orders;
+        SqlConnection Con = new SqlConnection(ConnectionStr);
+        Con.Open();
+        SqlCommand Cmd = new SqlCommand("SELECT COUNT(*) FROM dbo.Orders", Con);
+        Int32 Count = (Int32)Cmd.ExecuteScalar();
+        return DataManagerReq.RequiresCounts ? new DataResult() { Result = DataSource, Count = Count } : (object)DataSource;
+    }
+
+}
