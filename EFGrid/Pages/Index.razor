@@ -1,174 +1,33 @@
 ﻿@page "/"
-@using Microsoft.Data.SqlClient;
-@using Syncfusion.Blazor.Grids;
-@using Syncfusion.Blazor.PivotView;
-@using Syncfusion.Blazor.Data;
-@using Syncfusion.Blazor;
-@using System.Data
 
-<SfPivotView @ref=Pivot TValue="Order" ShowToolbar="true" ShowFieldList=true AllowExcelExport=true AllowPdfExport=true AllowCalculatedField=true AllowNumberFormatting=true Toolbar="@PivotToolbar">
-    <PivotViewDataSourceSettings TValue="Order" ExpandAll="true" EnableSorting="true">
-        <SfDataManager Adaptor="Adaptors.CustomAdaptor">
-            <CustomAdaptorComponent></CustomAdaptorComponent>
-        </SfDataManager>
-        <PivotViewRows>
-            <PivotViewRow Name=@nameof(Order.CustomerID) Caption="Customer ID"></PivotViewRow>
-        </PivotViewRows>
-        <PivotViewValues>
-            <PivotViewValue Name=@nameof(Order.OrderID) Caption="Order ID"></PivotViewValue>
-        </PivotViewValues>
-        <PivotViewEvents TValue="Order" SaveReport="SaveReport" LoadReport="LoadReport" FetchReport="FetchReport"></PivotViewEvents>
-    </PivotViewDataSourceSettings>
-</SfPivotView>
-@code {
-    SfPivotView<Order> Pivot { get; set; }
-    public List<ToolbarItems> PivotToolbar = new List<ToolbarItems> {
-        ToolbarItems.Save,
-        ToolbarItems.Load,
-        ToolbarItems.Grid,        
-        ToolbarItems.Export,
-        ToolbarItems.SubTotal,
-        ToolbarItems.GrandTotal,
-        ToolbarItems.Formatting,
-        ToolbarItems.FieldList
-    };
-    public string InitReport { get; set; }
-    public bool onint { get; set; }
-    public string[] Name { get; set; }
-    public List<string> Report = new List<string>();
-    public List<string> ReportName = new List<string>();
-    public static List<Order> Orders { get; set; }
+<h1 class="text-danger"></h1>
 
-    public class Order
-    {
-        public int? OrderID { get; set; }
-        public string CustomerID { get; set; }
-    }
+<h1>How to persist pivot table reports settings ?</h1>
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            onint = true;
-        }
-    }
-    public void SaveReport(SaveReportArgs args)
-    {
-        int i = 0;
-        bool IsSaved = false;
-        for (i = 0; i < this.ReportName.Count; i++)
-        {
-            if (this.ReportName[i] == args.ReportName)
-            {
-                this.Report[i] = args.Report;
-                IsSaved = true;
-            }
-        }
-        if (args.Report != null && !(IsSaved))
-        {
-            this.Report.Add(args.Report);
-            this.ReportName.Add(args.ReportName);
-        }
-        if (onint)
-        {
-            SaveReportToDB(args.ReportName, args.Report);
-        }
-    }
+<p>With my provided code, please use FetchData.razor as an example. </p>
 
-    public async Task FetchReport(FetchReportArgs args)
-    {
-        args.ReportName = ReportName.ToArray();
-        object rep = LoadReportFromDB(ReportName[0])["Report"];
-        await Pivot.LoadPersistDataAsync(rep.ToString());
-        
-    }
-    public async Task LoadReport(LoadReportArgs args)
-    {
-        object Reports = LoadReportFromDB(args.ReportName).Keys;
-        int i = 0;
-        int j = 0;
-        for (i = 0; i < ReportName.Count; i++)
-        {
-            if (ReportName[i] == args.ReportName)
-            {
-                j = i;
-            }
-        }
-        await this.Pivot.LoadPersistDataAsync(Report[j]);
-    }
+<p>
+    The objectif is to persit user configurations of pivot table reports. The persitence should be by browser tab.
 
+    First, User create a bunch of reports.
 
-    public Dictionary<string, object> SaveReportToDB(string reportName, string report)
-    {
-        string conSTR = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + Environment.CurrentDirectory + @"\App_Data\NORTHWND.mdf;Integrated Security=True";       
-        SqlConnection sqlConn = new SqlConnection(conSTR);
-        sqlConn.Open();
-        SqlCommand cmd1 = null;
-        foreach (DataRow row in GetDataTable(sqlConn).Rows)
-        {
-            if ((row.ItemArray[0] as string).Equals(reportName))
-            {
-                cmd1 = new SqlCommand("DELETE FROM ReportTable", sqlConn);
+    Then User should see the last report he has seen, when:
+    1. user refresh the browser tab <br/>
+    2. user navigates to other page then come back to the page containing the pivot table.
+</p>
 
-                int result1 = cmd1.ExecuteNonQuery();
-                cmd1 = new SqlCommand("insert into ReportTable Values(@ReportName,@Report)", sqlConn);
-            }
-        }
-        cmd1.Parameters.AddWithValue("@ReportName", reportName);
-        cmd1.Parameters.AddWithValue("@Report", report.ToString());
-        cmd1.Parameters[0].SqlDbType = SqlDbType.VarChar;
-        cmd1.Parameters[1].SqlDbType = SqlDbType.VarChar;
-        cmd1.ExecuteNonQuery();
-        sqlConn.Close();
-        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-        DataTable Data = GetDataTable(sqlConn);
-        return dictionary;
-    }
-    public Dictionary<string, object> LoadReportFromDB(string reportName)
-    {
-        string conSTR = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + Environment.CurrentDirectory + @"\App_Data\NORTHWND.mdf;Integrated Security=True";
-        SqlConnection sqlConn = new SqlConnection(conSTR);
-        sqlConn.Open();
-        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-        string currentRptName = string.Empty;
-        string report = string.Empty;
-        foreach (DataRow row in GetDataTable(sqlConn).Rows)
-        {
-            currentRptName = row.ItemArray[0] as string;
-            if (currentRptName.Equals(reportName))
-            {
-                report = row.ItemArray[1] as string;
-                dictionary["ReportName"] = currentRptName;
-                dictionary["Report"] = report;
-            }
-        }
-        sqlConn.Close();
-        return dictionary;
-    }
-    public Dictionary<string, object> FetchReportListFromDB()
-    {
-        string conSTR = @"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=" + Environment.CurrentDirectory + @"\App_Data\NORTHWND.mdf;Integrated Security=True";
-        SqlConnection sqlConn = new SqlConnection(conSTR);
-        sqlConn.Open();
-        string reportNames = string.Empty, currentRptName = string.Empty;
-        foreach (System.Data.DataRow row in GetDataTable(sqlConn).Rows)
-        {
-            currentRptName = (row.ItemArray[0] as string);
-            reportNames = reportNames == "" ? currentRptName : reportNames + "__" + currentRptName;
-        }
-        sqlConn.Close();
-        Dictionary<string, object> dictionary = new Dictionary<string, object>();
-        dictionary.Add("ReportNameList", reportNames);
-        dictionary.Add("CurrentAction", "Fetch");
-        return dictionary;
-    }
-    private DataTable GetDataTable(SqlConnection sqlConn)
-    {
-        string xquery = "SELECT * FROM ReportTable";
-        SqlCommand cmd = new SqlCommand(xquery, sqlConn);
-        SqlDataAdapter da = new SqlDataAdapter(cmd);
-        DataTable dt = new DataTable();
-        da.Fill(dt);
-        return dt;
-    }
-}
+<h2> I) State persistence does not seems working. </h2>
+<p> I might missed something. https://blazor.syncfusion.com/documentation/pivot-table/state-persistence
+    Even this works, as this stores the state in cookies, this won't allows to achieve objectif per browser tab</p>
+
+<h2>II) Using Browser Session Sotrage.</h2>
+<p>
+    Normally this feature can be achieved by Browser Session Storage.
+    But I can't see how to use `SfPivotView` API to Set `CurrentReport`.
+</p>
+
+<p>
+    <b> I have already achieved save reports configs in an databse and reload them. 
+        So saving current ReportName in session storage then CALL A SYNCFUSION PIVOT TABLE API, IF IT EXISTS, TO RELOAD THE REPORT ATTACHED TO THAT REPORT NAME
+        will do the trick</b>
+</p>

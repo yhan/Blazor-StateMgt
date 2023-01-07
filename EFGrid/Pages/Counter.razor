@@ -1,6 +1,6 @@
 ﻿@page "/counter"
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
-@inject ProtectedSessionStorage ProtectedSessionStore
+@inject ProtectedSessionStorage protectedSessionStore
 
 
 <h1>Counter</h1>
@@ -15,19 +15,19 @@
     private async Task IncrementCount()
     {
         currentCount++;
-        await ProtectedSessionStore.SetAsync("count", currentCount);
+        await protectedSessionStore.SetAsync("count", currentCount);
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var result = await ProtectedSessionStore.GetAsync<int>("count");
+        var result = await protectedSessionStore.GetAsync<int>("count");
         currentCount = result.Success ? result.Value : 0;
         StateHasChanged();
     }
 
     private async Task<int> GetCount()
     {
-        var result = await ProtectedSessionStore.GetAsync<int>("count");
+        var result = await protectedSessionStore.GetAsync<int>("count");
         currentCount = result.Success ? result.Value : 0;
         //isLoaded = true;
         return currentCount;

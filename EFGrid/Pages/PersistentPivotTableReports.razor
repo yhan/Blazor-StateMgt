@@ -1,12 +1,20 @@
-﻿@page "/tool"
+﻿@page "/persitent_reports"
 @using Syncfusion.Blazor.PivotView
-
 @using Syncfusion.Blazor
 @using EFGrid.Functions
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+
 @inject NavigationManager NavigationManager
+@inject ProtectedSessionStorage protectedSessionStore
+
 <div class="control-section">
     <div class="content-wrapper">
-        <SfPivotView @ref="@pivot" TValue="PivotProductDetails" Height="500" Width="1000" ShowFieldList=true ShowToolbar=true ShowGroupingBar=true Toolbar="@pivotToolbar" AllowNumberFormatting=true AllowConditionalFormatting=true AllowCalculatedField=true AllowPdfExport=true AllowExcelExport=true EnableValueSorting=true ShowTooltip=false>
+        <SfPivotView ID="EnablePersistenceTest" @ref="@pivot" TValue="PivotProductDetails" Height="500" Width="1000" ShowFieldList=true ShowToolbar=true ShowGroupingBar=true Toolbar="@pivotToolbar"
+                     AllowNumberFormatting=true AllowConditionalFormatting=true AllowCalculatedField=true AllowPdfExport=true
+                     AllowExcelExport=true EnableValueSorting=true ShowTooltip=false
+                     EnableSorting=true
+                     EnablePersistence="true">
+            
             <PivotViewDisplayOption Primary="Primary.Table" View="View.Both"></PivotViewDisplayOption>
             <PivotViewDataSourceSettings DataSource="@Data" ExpandAll=true EnableSorting=true ShowGrandTotals=true ShowSubTotals=true>
                 <PivotViewColumns>
@@ -76,7 +84,7 @@
         this.Data = PivotProductDetails.GetProductData();
     }
 
-    private void SaveReport(SaveReportArgs args)
+    private async Task SaveReport(SaveReportArgs args)
     {
         reportNameToReport[args.ReportName] = args.Report;
     }
@@ -86,12 +94,25 @@
         args.ReportName = reportNameToReport.Keys.ToArray();
     }
 
+    // Call this function to get last viewed report name
+    private async Task<string> FetchLastReportName()
+    {
+        var result = await protectedSessionStore.GetAsync<string>("currenRptName");
+        var currentRptName = result.Success ? result.Value : "Sample Report";
+        return currentRptName;
+    }
+    
     private async Task LoadReport(LoadReportArgs args)
     {
         var rpt = reportNameToReport[args.ReportName];
         await this.pivot.LoadPersistDataAsync(rpt);
+
+        await RememberLastReportName(args);
     }
-    
+
+    private async Task RememberLastReportName(LoadReportArgs args) 
+        => await protectedSessionStore.SetAsync("currenRptName", args.ReportName);
+
     private async Task RemoveReport(RemoveReportArgs args)
     {
         reportNameToReport.Remove(args.ReportName);
