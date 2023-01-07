@@ -24,12 +24,4 @@
         currentCount = result.Success ? result.Value : 0;
         StateHasChanged();
     }
-
-    private async Task<int> GetCount()
-    {
-        var result = await protectedSessionStore.GetAsync<int>("count");
-        currentCount = result.Success ? result.Value : 0;
-        //isLoaded = true;
-        return currentCount;
-    }
 }

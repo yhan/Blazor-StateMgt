@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EFGrid.Data;
+using EFGrid.Functions;
 using Syncfusion.Blazor;
 
 namespace EFGrid
@@ -30,13 +25,15 @@ namespace EFGrid
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
-            //services.AddSingleton<OrderDataAccessLayer>();
+            services.AddSingleton<FakeDB>();
             services.AddSyncfusionBlazor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("ODk0NDYzQDMyMzAyZTM0MmUzMGxSekxWZWtqTGlZU216OWpoUDdqQXNZbzJDVUlzbklSaEo4cXpQM3dwOUE9");
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

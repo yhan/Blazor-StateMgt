@@ -6,6 +6,7 @@
 
 @inject NavigationManager NavigationManager
 @inject ProtectedSessionStorage protectedSessionStore
+@inject FakeDB fakeDb
 
 <div class="control-section">
     <div class="content-wrapper">
@@ -76,8 +77,6 @@
     
     private Theme Theme { get; set; }
     private List<PivotProductDetails> Data { get; set; }
-    private readonly Dictionary<string, string> reportNameToReport = new();
-    
     protected override void OnInitialized()
     {
         Theme = Theme.Bootstrap5;
@@ -86,13 +85,45 @@
 
     private async Task SaveReport(SaveReportArgs args)
     {
-        reportNameToReport[args.ReportName] = args.Report;
+        fakeDb.SaveReport(args.ReportName, args.Report);
     }
 
     private void FetchReport(FetchReportArgs args)
     {
-        args.ReportName = reportNameToReport.Keys.ToArray();
+        args.ReportName = fakeDb.FetchReport();
     }
+    
+    private async Task LoadReport(LoadReportArgs args)
+    {
+        var rptName = args.ReportName;
+        var rpt = fakeDb.LoadReport(rptName);
+        await this.pivot.LoadPersistDataAsync(rpt);
+
+        await RememberLastReportName(args);
+    }
+    
+    private async Task RemoveReport(RemoveReportArgs args)
+    {
+        var reportName = args.ReportName;
+        var firstReport = fakeDb.RemoveThenReturnFirstReport(reportName);
+        if (string.IsNullOrWhiteSpace(firstReport))
+        {
+            await this.pivot.LoadPersistDataAsync(firstReport);
+        }
+    }
+    
+    private void RenameReport(RenameReportArgs args)
+    {
+        var oldName = args.ReportName;
+        var newRptName = args.Rename;
+        
+        if (!args.IsReportExists)
+        {
+            fakeDb.Rename(oldName, newRptName);
+        }
+    }
+
+    #region Session State Management
 
     // Call this function to get last viewed report name
     private async Task<string> FetchLastReportName()
@@ -101,36 +132,9 @@
         var currentRptName = result.Success ? result.Value : "Sample Report";
         return currentRptName;
     }
-    
-    private async Task LoadReport(LoadReportArgs args)
-    {
-        var rpt = reportNameToReport[args.ReportName];
-        await this.pivot.LoadPersistDataAsync(rpt);
 
-        await RememberLastReportName(args);
-    }
-
-    private async Task RememberLastReportName(LoadReportArgs args) 
+    private async Task RememberLastReportName(LoadReportArgs args)
         => await protectedSessionStore.SetAsync("currenRptName", args.ReportName);
 
-    private async Task RemoveReport(RemoveReportArgs args)
-    {
-        reportNameToReport.Remove(args.ReportName);
-        if (reportNameToReport.Count > 0)
-        {
-            var firstRpt = reportNameToReport.First().Value;
-            await this.pivot.LoadPersistDataAsync(firstRpt);
-        }
-    }
-    
-    private void RenameReport(RenameReportArgs args)
-    {
-        var oldName = args.ReportName;
-        if (args.IsReportExists)
-        {
-            var rpt = reportNameToReport[oldName];
-            reportNameToReport.Remove(oldName);
-            reportNameToReport[args.Rename] = rpt;
-        }
-    }
+    #endregion
 }

@@ -4,30 +4,39 @@
 
 <h1>How to persist pivot table reports settings ?</h1>
 
-<p>With my provided code, please use FetchData.razor as an example. </p>
 
-<p>
-    The objectif is to persit user configurations of pivot table reports. The persitence should be by browser tab.
-
-    First, User create a bunch of reports.
-
-    Then User should see the last report he has seen, when:
-    1. user refresh the browser tab <br/>
-    2. user navigates to other page then come back to the page containing the pivot table.
-</p>
-
-<h2> I) State persistence does not seems working. </h2>
-<p> I might missed something. https://blazor.syncfusion.com/documentation/pivot-table/state-persistence
-    Even this works, as this stores the state in cookies, this won't allows to achieve objectif per browser tab</p>
-
-<h2>II) Using Browser Session Sotrage.</h2>
-<p>
-    Normally this feature can be achieved by Browser Session Storage.
-    But I can't see how to use `SfPivotView` API to Set `CurrentReport`.
-</p>
-
-<p>
-    <b> I have already achieved save reports configs in an databse and reload them. 
-        So saving current ReportName in session storage then CALL A SYNCFUSION PIVOT TABLE API, IF IT EXISTS, TO RELOAD THE REPORT ATTACHED TO THAT REPORT NAME
-        will do the trick</b>
-</p>
+<span style="white-space: pre;">
+    With my provided code, please use PersistentPivotTableReports.razor as an example. And test that in Chrome.
+    
+    <h4>## OBJECTIF ##</h4>
+    The objectif is to persit and reload user's last viewed report in each browser tab.
+        First, User create and save a bunch of reports.
+        Then User should see the last report he has seen in each browser tab, when:   
+    
+           1. user refresh the browser tab
+    
+           2. with in each browser tab, user navigates to other page then come back to the page containing the pivot table.
+    
+    <h4>## Finding solution ##</h4>
+    
+     I) Already looked over State persistence feature (https://blazor.syncfusion.com/documentation/pivot-table/state-persistence )
+    
+    	First of all, this seems stores only the default report 'Sample report' configurations in browser "Local Storage", other reports are not stored.
+        Secondly, as this stores the state in browser local storage, this won't allows to achieve objectif per BROWSER TAB. 
+    	cf: https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management?view=aspnetcore-7.0&pivots=server#browser-storage-server
+    
+     II) Using Browser Session Sotrage.
+		
+         With above reason, I move to this solution II.
+    	 
+    	 I have already achieved save reports configs in an databse and reload them. So the report configs are saved and reloaded per user. You can find detail in the code "FakeDB".
+    	 Now I can also store the last viewed report name in Browser Session Storage.    
+    	 So in each opened tab, I can find the last viewed report name.
+    	 
+    	 But I can't see how to use `SfPivotView` API to Set `CurrentReport`.
+    
+         In brief, saving current ReportName in session storage then CALL A SYNCFUSION PIVOT TABLE API, IF IT EXISTS, TO RELOAD THE REPORT ATTACHED TO THAT REPORT NAME will achieve the objectif.
+         ---> is this doable ?
+    
+         Session storage example: Counter.razor
+</span>
