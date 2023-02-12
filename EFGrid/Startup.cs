@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EFGrid.Data;
 using EFGrid.Functions;
+using EFGrid.Shared;
 using Syncfusion.Blazor;
 
 namespace EFGrid

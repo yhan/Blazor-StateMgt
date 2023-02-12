@@ -1,42 +1,53 @@
 ﻿@page "/"
+@page "/{ChosenDate}"
 
 <h1 class="text-danger"></h1>
-
+<p> ChosenDate is: [@ChosenDate]</p>
+	
 <h1>How to persist pivot table reports settings ?</h1>
 
 
 <span style="white-space: pre;">
-    With my provided code, please use PersistentPivotTableReports.razor as an example. And test that in Chrome.
+	With my provided code, please use PersistentPivotTableReports.razor as an example. And test that in Chrome.
     
-    <h4>## OBJECTIF ##</h4>
-    The objectif is to persit and reload user's last viewed report in each browser tab.
-        First, User create and save a bunch of reports.
-        Then User should see the last report he has seen in each browser tab, when:   
+	<h4>## OBJECTIF ##</h4>
+	The objectif is to persit and reload user's last viewed report in each browser tab.
+	First, User create and save a bunch of reports.
+	Then User should see the last report he has seen in each browser tab, when:   
     
-           1. user refresh the browser tab
+	1. user refresh the browser tab
     
-           2. with in each browser tab, user navigates to other page then come back to the page containing the pivot table.
+	2. with in each browser tab, user navigates to other page then come back to the page containing the pivot table.
     
-    <h4>## Finding solution ##</h4>
+	<h4>## Finding solution ##</h4>
     
-     I) Already looked over State persistence feature (https://blazor.syncfusion.com/documentation/pivot-table/state-persistence )
+	I) Already looked over State persistence feature (https://blazor.syncfusion.com/documentation/pivot-table/state-persistence )
     
-    	First of all, this seems stores only the default report 'Sample report' configurations in browser "Local Storage", other reports are not stored.
-        Secondly, as this stores the state in browser local storage, this won't allows to achieve objectif per BROWSER TAB. 
-    	cf: https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management?view=aspnetcore-7.0&pivots=server#browser-storage-server
+	First of all, this seems stores only the default report 'Sample report' configurations in browser "Local Storage", other reports are not stored.
+	Secondly, as this stores the state in browser local storage, this won't allows to achieve objectif per BROWSER TAB. 
+	cf: https://learn.microsoft.com/en-us/aspnet/core/blazor/state-management?view=aspnetcore-7.0&pivots=server#browser-storage-server
     
-     II) Using Browser Session Sotrage.
+	II) Using Browser Session Sotrage.
 		
-         With above reason, I move to this solution II.
+	With above reason, I move to this solution II.
     	 
-    	 I have already achieved save reports configs in an databse and reload them. So the report configs are saved and reloaded per user. You can find detail in the code "FakeDB".
-    	 Now I can also store the last viewed report name in Browser Session Storage.    
-    	 So in each opened tab, I can find the last viewed report name.
+	I have already achieved save reports configs in an databse and reload them. So the report configs are saved and reloaded per user. You can find detail in the code "FakeDB".
+	Now I can also store the last viewed report name in Browser Session Storage.    
+	So in each opened tab, I can find the last viewed report name.
     	 
-    	 But I can't see how to use `SfPivotView` API to Set `CurrentReport`.
+	But I can't see how to use `SfPivotView` API to Set `CurrentReport`.
     
-         In brief, saving current ReportName in session storage then CALL A SYNCFUSION PIVOT TABLE API, IF IT EXISTS, TO RELOAD THE REPORT ATTACHED TO THAT REPORT NAME will achieve the objectif.
-         ---> is this doable ?
+	In brief, saving current ReportName in session storage then CALL A SYNCFUSION PIVOT TABLE API, IF IT EXISTS, TO RELOAD THE REPORT ATTACHED TO THAT REPORT NAME will achieve the objectif.
+	---> is this doable ?
     
-         Session storage example: Counter.razor
+	Session storage example: Counter.razor
 </span>
+
+@code
+{
+	[Parameter]
+	public string ChosenDate { get; set; }
+
+	// [Parameter]
+	// public string? Name { get; set; }
+}

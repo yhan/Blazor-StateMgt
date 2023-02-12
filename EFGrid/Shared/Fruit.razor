@@ -1,10 +1,5 @@
-﻿<p>The fruit is: @Name</p>
+﻿<p>Fruit is: @FruitName</p>
 
 @code {
-    [CascadingParameter(Name = "FruitName")] string Name
-    {
-        get => name;
-        set => name = value;
-    }
-    private string name;
+    [CascadingParameter(Name = "FruitName")] private string FruitName { get; set; }
 }

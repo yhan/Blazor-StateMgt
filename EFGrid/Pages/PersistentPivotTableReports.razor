@@ -1,12 +1,16 @@
 ﻿@page "/persitent_reports"
+@page "/persitent_reports/{ChosenDate}"
+
 @using Syncfusion.Blazor.PivotView
 @using Syncfusion.Blazor
 @using EFGrid.Functions
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
-@inject NavigationManager NavigationManager
+
 @inject ProtectedSessionStorage protectedSessionStore
 @inject FakeDB fakeDb
+
+<p> TransportDate is: @ChosenDate</p>
 
 <div class="control-section">
     <div class="content-wrapper">
@@ -57,6 +61,9 @@
     }
 </style>
 @code{
+
+    [Parameter] public string ChosenDate { get; set; }
+    
     private SfPivotView<PivotProductDetails> pivot;
     private readonly List<ToolbarItems> pivotToolbar = new()
     {

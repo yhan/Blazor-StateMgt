@@ -1,23 +1,29 @@
 ﻿@using Microsoft.Extensions.Logging
+@using Syncfusion.Blazor.Calendars
+
 @inherits LayoutComponentBase
+
 @inject ILogger<MainLayout> Logger
+@inject NavigationManager NavMgr
 
 <div class="sidebar">
-    <NavMenu  />
+    <NavMenu/>
 </div>
 
 <div class="main">
     <div class="top-row px-4">
-    
-        <EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit">
-            <InputText id="name" @bind-Value="exampleModel.Name" />
+
+        <SfCalendar TValue="DateTime?" @ref="@calendar" ValueChanged="CalendarDateChanged"></SfCalendar>
+
+        <EditForm Model="@fruitModel" OnValidSubmit="@HandleValidSubmit">
+            <InputText id="name" @bind-Value="fruitModel.Name"/>
             <button type="submit">Submit</button>
         </EditForm>
-        
-        <CascadingValue Value="@exampleModel.Name" Name="FruitName">
-           <Fruit></Fruit>
+
+        <CascadingValue Value="@fruitModel.Name" Name="FruitName">
+            <Fruit></Fruit>
         </CascadingValue>
-        
+
         <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
     </div>
 
@@ -28,15 +34,17 @@
 
 
 @code {
-    int TheAnswer = 42;
-    string FruitName { get; set; }
-    string SecondFruitName { get; set; } 
 
-    private readonly ExampleModel exampleModel = new();
-    
-    int FruitCount { get; set; } = 111;
-    
-    public class ExampleModel
+    public DateTime? DateValue
+    {
+        get => dateValue;
+        set { dateValue = value; }
+    }
+    private DateTime? dateValue;
+
+    private readonly FruitModel fruitModel = new();
+
+    public class FruitModel
     {
         private string name;
         public string Name
@@ -49,5 +57,21 @@
     private void HandleValidSubmit()
     {
         Logger.LogInformation("HandleValidSubmit called");
+    }
+
+    private SfCalendar<DateTime?> calendar;
+    private void CalendarDateChanged(DateTime? dt)
+    {
+        if (dt == null)
+            return;
+
+        var chosenDate = dt.Value.ToString("yyyyMMdd");
+        var rel = NavMgr.ToBaseRelativePath(NavMgr.Uri);
+        if(string.IsNullOrWhiteSpace(rel) || !rel.Contains('/'))
+            this.NavMgr.NavigateTo($"/{chosenDate}");
+        else
+        {
+            this.NavMgr.NavigateTo($"/{rel.Split('/')[0]}/{chosenDate}");
+        }
     }
 }

@@ -1,9 +1,39 @@
-﻿<p>The meaning of life is @MeaningOfLife.</p>
+﻿@using Microsoft.Extensions.Logging
+@inject ILogger<FooComponent> Logger
+
+<p>The meaning of life is @exampleModel.Name.</p>
+
+<div>
+    <EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit">
+        <InputText id="name" @bind-Value="exampleModel.Name"/>
+        <button type="submit">Submit</button>
+    </EditForm>
+
+    <CascadingValue Value="@exampleModel.Name" Name="FruitName">
+        <Fruit></Fruit>
+    </CascadingValue>
+</div>
 
 @code {
-    [CascadingParameter] int MeaningOfLife
+    string FruitName { get; set; }
+    string SecondFruitName { get; set; }
+
+    private readonly ExampleModel exampleModel = new();
+
+    int FruitCount { get; set; } = 111;
+
+    public class ExampleModel
     {
-        get;
-        set;
+        private string name;
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        Logger.LogInformation("HandleValidSubmit called");
     }
 }
