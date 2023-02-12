@@ -1,0 +1,11 @@
+﻿@page "/cascade"
+
+<h3>CascadeComponent</h3>
+
+<CascadingValue Value="@TheAnswer">
+    <FooComponent></FooComponent>
+</CascadingValue>
+
+@code {
+    int TheAnswer = 42;
+}

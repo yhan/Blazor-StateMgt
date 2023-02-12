@@ -1,11 +1,21 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="sidebar">
-    <NavMenu />
+    <NavMenu  />
 </div>
 
 <div class="main">
     <div class="top-row px-4">
+        <CascadingValue Value="@TheAnswer">
+            <FooComponent></FooComponent>
+        </CascadingValue>
+        
+        <CascadingValue Value="@FruitName" Name="FruitName">
+            <CascadingValue Value="@SecondFruitName" Name="SecondFruitName">
+                <Fruit></Fruit>
+            </CascadingValue>
+        </CascadingValue>
+        
         <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
     </div>
 
@@ -13,3 +23,12 @@
         @Body
     </div>
 </div>
+
+
+@code {
+    int TheAnswer = 42;
+    string FruitName { get; set; } = "Apple";
+    string SecondFruitName { get; } = "Banana";
+    
+    int FruitCount { get; set; } = 111;
+}

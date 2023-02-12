@@ -1,5 +1,6 @@
 ﻿@page "/counter"
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Diagnostics
 @inject ProtectedSessionStorage protectedSessionStore
 
 
@@ -14,14 +15,23 @@
 
     private async Task IncrementCount()
     {
+        //Debug.WriteLine($"IncrementCount: {this.ShouldRender()}");
         currentCount++;
         await protectedSessionStore.SetAsync("count", currentCount);
     }
     
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        //Debug.WriteLine($"OnAfterRenderAsync: {this.ShouldRender()}");
         var result = await protectedSessionStore.GetAsync<int>("count");
         currentCount = result.Success ? result.Value : 0;
         StateHasChanged();
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        Debug.WriteLine($"before {protectedSessionStore == null}");
+        await base.SetParametersAsync(parameters);
+        Debug.WriteLine($"after {protectedSessionStore == null}");
     }
 }
