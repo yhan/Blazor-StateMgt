@@ -1,4 +1,6 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.Extensions.Logging
+@inherits LayoutComponentBase
+@inject ILogger<MainLayout> Logger
 
 <div class="sidebar">
     <NavMenu  />
@@ -6,14 +8,14 @@
 
 <div class="main">
     <div class="top-row px-4">
-        <CascadingValue Value="@TheAnswer">
-            <FooComponent></FooComponent>
-        </CascadingValue>
+    
+        <EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit">
+            <InputText id="name" @bind-Value="exampleModel.Name" />
+            <button type="submit">Submit</button>
+        </EditForm>
         
-        <CascadingValue Value="@FruitName" Name="FruitName">
-            <CascadingValue Value="@SecondFruitName" Name="SecondFruitName">
-                <Fruit></Fruit>
-            </CascadingValue>
+        <CascadingValue Value="@exampleModel.Name" Name="FruitName">
+           <Fruit></Fruit>
         </CascadingValue>
         
         <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
@@ -27,8 +29,25 @@
 
 @code {
     int TheAnswer = 42;
-    string FruitName { get; set; } = "Apple";
-    string SecondFruitName { get; } = "Banana";
+    string FruitName { get; set; }
+    string SecondFruitName { get; set; } 
+
+    private readonly ExampleModel exampleModel = new();
     
     int FruitCount { get; set; } = 111;
+    
+    public class ExampleModel
+    {
+        private string name;
+        public string Name
+        {
+            get => name;
+            set => name = value;
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        Logger.LogInformation("HandleValidSubmit called");
+    }
 }
