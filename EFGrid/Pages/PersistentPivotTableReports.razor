@@ -5,6 +5,7 @@
 @using Syncfusion.Blazor
 @using EFGrid.Functions
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Globalization
 
 
 @inject ProtectedSessionStorage protectedSessionStore
@@ -22,13 +23,12 @@
             
             <PivotViewDisplayOption Primary="Primary.Table" View="View.Both"></PivotViewDisplayOption>
             <PivotViewDataSourceSettings DataSource="@Data" ExpandAll=true EnableSorting=true ShowGrandTotals=true ShowSubTotals=true>
-                <PivotViewColumns>
-                    <PivotViewColumn Name="Year"></PivotViewColumn>
-                    <PivotViewColumn Name="Order_Source" Caption="Order Source"></PivotViewColumn>
-                </PivotViewColumns>
+                @* <PivotViewColumns> *@
+                @*     <PivotViewColumn Name="Year"></PivotViewColumn> *@
+                @*     <PivotViewColumn Name="Order_Source" Caption="Order Source"></PivotViewColumn> *@
+                @* </PivotViewColumns> *@
                 <PivotViewRows>
-                    <PivotViewRow Name="Country"></PivotViewRow>
-                    <PivotViewRow Name="Products"></PivotViewRow>
+                    <PivotViewRow Name="@nameof(PivotProductDetails.Date)"></PivotViewRow>
                 </PivotViewRows>
                 <PivotViewValues>
                     <PivotViewValue Name="In_Stock" Caption="In Stock"></PivotViewValue>
@@ -62,8 +62,24 @@
 </style>
 @code{
 
-    [Parameter] public string ChosenDate { get; set; }
-    
+    [Parameter] [SupplyParameterFromQuery]
+    public string ChosenDate
+    {
+        get => chosenDate;
+        set
+        {
+            if(value == chosenDate)
+                return;
+            
+            chosenDate = value;
+            if (!string.IsNullOrWhiteSpace(this.ChosenDate) && this.Data!=null)
+            {
+                var filter = DateOnly.Parse(this.ChosenDate, CultureInfo.InvariantCulture);
+                this.Data = this.Data.FilterByDate(filter);
+            }
+        }
+    }
+
     private SfPivotView<PivotProductDetails> pivot;
     private readonly List<ToolbarItems> pivotToolbar = new()
     {
@@ -81,13 +97,22 @@
         ToolbarItems.Formatting,
         ToolbarItems.FieldList
     };
-    
+    private string chosenDate;
+
     private Theme Theme { get; set; }
     private List<PivotProductDetails> Data { get; set; }
     protected override void OnInitialized()
     {
         Theme = Theme.Bootstrap5;
-        this.Data = PivotProductDetails.GetProductData();
+        var data = PivotProductDetails.GetProductData();
+        
+        if(!string.IsNullOrWhiteSpace(this.ChosenDate))
+        {
+            var filter = DateOnly.Parse(this.ChosenDate, CultureInfo.InvariantCulture);
+            data = data.FilterByDate(filter);
+        }
+
+        this.Data = data;
     }
 
     private async Task SaveReport(SaveReportArgs args)

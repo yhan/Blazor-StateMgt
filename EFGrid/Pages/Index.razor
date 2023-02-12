@@ -1,5 +1,5 @@
 ﻿@page "/"
-@page "/{ChosenDate}"
+@* @page "/{ChosenDate}" *@
 
 <h1 class="text-danger"></h1>
 <p> ChosenDate is: [@ChosenDate]</p>
@@ -45,7 +45,8 @@
 
 @code
 {
-	[Parameter]
+	[Parameter] 
+	[SupplyParameterFromQuery]
 	public string ChosenDate { get; set; }
 
 	// [Parameter]

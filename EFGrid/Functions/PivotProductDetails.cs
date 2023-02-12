@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EFGrid.Functions;
 
@@ -13,6 +15,8 @@ public class PivotProductDetails
     public string Order_Source { get; set; }
     public string Year { get; set; }
     public string Quarter { get; set; }
+
+    public DateOnly Date { get; set; }
 
     public static List<PivotProductDetails> GetProductData()
     {
@@ -9198,6 +9202,22 @@ public class PivotProductDetails
             Quarter = "Q4"
         });
 
+        var today = DateTime.Today;
+        foreach (var pd in productData)
+        {
+            var addDays = rand.Next(-3, 4);
+            pd.Date = DateOnly.FromDateTime(today.AddDays(addDays));
+        }
+        
         return productData;
+    }
+    private static readonly Random rand = new();
+}
+
+public static class DataHelper
+{
+    public static List<PivotProductDetails> FilterByDate(this List<PivotProductDetails> origin, DateOnly filterDate)
+    {
+        return origin.Where(x => x.Date == filterDate).ToList();
     }
 }

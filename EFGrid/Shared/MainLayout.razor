@@ -1,5 +1,6 @@
 ﻿@using Microsoft.Extensions.Logging
 @using Syncfusion.Blazor.Calendars
+@using Microsoft.AspNetCore.WebUtilities
 
 @inherits LayoutComponentBase
 
@@ -12,18 +13,7 @@
 
 <div class="main">
     <div class="top-row px-4">
-
-        <SfCalendar TValue="DateTime?" @ref="@calendar" ValueChanged="CalendarDateChanged"></SfCalendar>
-
-        <EditForm Model="@fruitModel" OnValidSubmit="@HandleValidSubmit">
-            <InputText id="name" @bind-Value="fruitModel.Name"/>
-            <button type="submit">Submit</button>
-        </EditForm>
-
-        <CascadingValue Value="@fruitModel.Name" Name="FruitName">
-            <Fruit></Fruit>
-        </CascadingValue>
-
+        @* <SfCalendar TValue="DateTime?" @ref="@calendar" ValueChanged="CalendarDateChanged"></SfCalendar> *@
         <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
     </div>
 
@@ -34,40 +24,29 @@
 
 
 @code {
-
-    public DateTime? DateValue
-    {
-        get => dateValue;
-        set { dateValue = value; }
-    }
-    private DateTime? dateValue;
-
-    private readonly FruitModel fruitModel = new();
-
-    public class FruitModel
-    {
-        private string name;
-        public string Name
-        {
-            get => name;
-            set => name = value;
-        }
-    }
-
-    private void HandleValidSubmit()
-    {
-        Logger.LogInformation("HandleValidSubmit called");
-    }
-
-    private SfCalendar<DateTime?> calendar;
+     private SfCalendar<DateTime?> calendar;
     private void CalendarDateChanged(DateTime? dt)
     {
         if (dt == null)
             return;
 
         var chosenDate = dt.Value.ToString("yyyyMMdd");
+
+        var uri = new Uri(NavMgr.Uri);
+        string pagePathWithoutQueryString = uri.GetLeftPart(UriPartial.Path);
+        
+        NavMgr.NavigateTo(
+            QueryHelpers.AddQueryString(pagePathWithoutQueryString, "ChosenDate", chosenDate));
+    }
+    
+    private void NavWithRouteParam(DateTime? dt)
+    {
+        if (dt == null)
+            return;
+
+        var chosenDate = dt.Value.ToString("yyyyMMdd");
         var rel = NavMgr.ToBaseRelativePath(NavMgr.Uri);
-        if(string.IsNullOrWhiteSpace(rel) || !rel.Contains('/'))
+        if (string.IsNullOrWhiteSpace(rel) || !rel.Contains('/'))
             this.NavMgr.NavigateTo($"/{chosenDate}");
         else
         {

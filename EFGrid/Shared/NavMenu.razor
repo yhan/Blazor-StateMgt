@@ -1,4 +1,15 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
+﻿@using Syncfusion.Blazor.Calendars
+@using Microsoft.AspNetCore.WebUtilities
+@using EFGrid.Functions
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Diagnostics
+@using Microsoft.AspNetCore.Http.Extensions
+@using Microsoft.Extensions.Primitives
+@inject NavigationManager NavMgr
+@inject CalendarMemory CalendarMemory
+@inject ProtectedSessionStorage ProtectedSessionStore
+
+<div class="top-row pl-4 navbar navbar-dark">
     <a class="navbar-brand" href="">EFGrid</a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
@@ -34,7 +45,9 @@
         </li>
     </ul>
 </div>
-
+<div>
+    <SfCalendar TValue="DateTime?" @ref="@calendar" ValueChanged="CalendarDateChanged"></SfCalendar>
+</div>
 @code {
     private bool collapseNavMenu = true;
 
@@ -43,5 +56,51 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    DateTime? lastDate = default; 
+    private SfCalendar<DateTime?> calendar;
+    private SfCalendar<DateOnly?> calendar2;
+    private void CalendarDateChanged(DateTime? dt)
+    {
+        if (dt == null)
+            return;
+        
+        // await ProtectedSessionStore.SetAsync("date", dt.Value);
+        // NavMgr.NavigateTo(NavMgr.Uri, true);
+        
+        var chosenDate = dt.Value.ToString("yyyy-MM-dd");
+        var uri = new Uri(NavMgr.Uri);
+        var pagePathWithoutQueryString = uri.GetLeftPart(UriPartial.Path);
+        
+        NavMgr.NavigateTo(
+            QueryHelpers.AddQueryString(pagePathWithoutQueryString, "ChosenDate", chosenDate), forceLoad: true);
+    }
+
+    protected override void OnInitialized()
+    {
+        Debug.WriteLine("NavMenu OnInitialized");
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Debug.WriteLine("NavMenu OnAfterRenderAsync");
+        if (this.calendar.Value != null)
+            return;
+
+        Dictionary<string, StringValues> res = QueryHelpers.ParseQuery(NavMgr.BaseUri);
+        if (res.ContainsKey("ChosenDate")
+            && res["ChosenDate"].Count > 0)
+        {
+            var currentDate = res["ChosenDate"][0];
+            this.calendar.Value = DateTime.Parse(currentDate);
+            StateHasChanged();
+        }
+        // ProtectedBrowserStorageResult<DateTime> memorizedDate = await ProtectedSessionStore.GetAsync<DateTime>("date");
+        // if(memorizedDate.Success)
+        // {
+        //     this.calendar.Value = memorizedDate.Value; 
+        //     StateHasChanged();
+        // }
     }
 }
